@@ -9,7 +9,8 @@
     "setup:base-data": "ts-node scripts/setup-base-data.ts",
     "import:catalog": "ts-node scripts/import-catalog.ts",
     "create-superadmin": "ts-node scripts/create-superadmin.ts",
-    "start": "node dist/src/index.js"
+    "start": "node dist/src/index.js",
+    "setup:checkout": "ts-node scripts/setup-checkout.ts"
   },
   "dependencies": {
     "@vendure/admin-ui-plugin": "3.7.3",

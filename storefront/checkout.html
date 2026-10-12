@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Checkout | Witchcraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  :root {
+    --midnight: #0E0B1D; --surface: #17122A; --surface-2: #1E1836;
+    --amethyst: #8B6FD8; --amethyst-bright: #A489E8; --moon-gold: #F2D3A1;
+    --lavender: #DCC8FF; --ivory: #F9F6EF; --ivory-dim: rgba(249, 246, 239, 0.62);
+    --ivory-faint: rgba(249, 246, 239, 0.38); --hairline: rgba(220, 200, 255, 0.14);
+    --success: #7FC99A; --error: #E8968B;
+    --font-display: 'Fraunces', serif; --font-body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--midnight); color: var(--ivory); font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased; padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  img { max-width: 100%; display: block; }
+  input, select { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--amethyst-bright); outline-offset: 3px; border-radius: 4px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding-left: clamp(20px, 4vw, 56px); padding-right: clamp(20px, 4vw, 56px); }
+
+  header {
+    position: sticky; top: 0; z-index: 40; background: rgba(14, 11, 29, 0.88);
+    backdrop-filter: blur(14px); border-bottom: 1px solid var(--hairline);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 21px; font-weight: 500; }
+  .secure-badge { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ivory-faint); }
+
+  .page-head { padding: 36px 0 4px; }
+  .page-head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 3.2vw, 34px); }
+  .page-head .step-count { color: var(--ivory-faint); font-size: 13.5px; margin-top: 6px; }
+
+  .checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 40px; padding: 28px 0 72px; align-items: start; }
+
+  .form-section { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; padding: 26px; margin-bottom: 20px; }
+  .form-section h2 { font-size: 15px; font-weight: 600; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  .form-section h2 .step-num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--amethyst); color: var(--midnight);
+    font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 12px; color: var(--ivory-faint); font-weight: 500; }
+  .field input, .field select {
+    background: var(--surface-2); border: 1.5px solid var(--hairline); border-radius: 9px;
+    padding: 11px 14px; color: var(--ivory); font-size: 13.5px;
+  }
+  .field input::placeholder { color: var(--ivory-faint); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--amethyst); }
+  .field input.error, .field select.error { border-color: var(--error); }
+  .field .err-msg { font-size: 11px; color: var(--error); display: none; }
+  .field .err-msg.show { display: block; }
+
+  .payment-options { display: flex; flex-direction: column; gap: 10px; }
+  .payment-option {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1.5px solid var(--hairline);
+    border-radius: 10px; cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .payment-option:hover { border-color: var(--lavender); }
+  .payment-option.selected { border-color: var(--amethyst); background: rgba(139,111,216,0.08); }
+  .payment-option input[type="radio"] { accent-color: var(--amethyst); width: 16px; height: 16px; }
+  .payment-option .label { font-size: 13.5px; font-weight: 500; flex: 1; }
+  .payment-option .sub { font-size: 11.5px; color: var(--ivory-faint); }
+  .payment-option .icons { display: flex; gap: 6px; }
+  .payment-option .icons span { font-size: 9.5px; border: 1px solid var(--hairline); padding: 3px 7px; border-radius: 4px; color: var(--ivory-faint); }
+
+  .order-summary { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; padding: 24px; position: sticky; top: 100px; }
+  .order-summary h2 { font-size: 15px; font-weight: 600; margin-bottom: 18px; }
+  .mini-line { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
+  .mini-line .thumb { width: 48px; height: 48px; border-radius: 8px; overflow: hidden; background: var(--surface-2); flex-shrink: 0; }
+  .mini-line .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .mini-line .name { font-size: 12.5px; line-height: 1.4; flex: 1; }
+  .mini-line .qty { font-size: 11.5px; color: var(--ivory-faint); }
+  .mini-line .price { font-size: 13px; color: var(--moon-gold); font-weight: 600; white-space: nowrap; }
+
+  .summary-row { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--ivory-dim); padding: 9px 0; }
+  .summary-row.total { border-top: 1px solid var(--hairline); margin-top: 8px; padding-top: 16px; font-size: 15px; color: var(--ivory); font-weight: 600; }
+  .summary-row .amt { color: var(--ivory); }
+  .summary-row.total .amt { font-family: var(--font-display); font-size: 21px; color: var(--moon-gold); font-weight: 400; }
+
+  .btn-pay {
+    width: 100%; background: var(--amethyst); color: var(--midnight); font-weight: 600; font-size: 14.5px;
+    padding: 16px; border-radius: 100px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 18px; transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-pay:hover { background: var(--amethyst-bright); }
+  .btn-pay:active { transform: scale(0.98); }
+  .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-pay .spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(14,11,29,0.3); border-top-color: var(--midnight); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  .btn-pay.loading .spinner { display: inline-block; }
+  .btn-pay.loading .btn-label { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .trust-note { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 11.5px; color: var(--ivory-faint); margin-top: 14px; }
+  .demo-note {
+    background: rgba(242, 211, 161, 0.08); border: 1px dashed rgba(242, 211, 161, 0.3); border-radius: 10px;
+    padding: 12px 14px; font-size: 11.5px; color: var(--moon-gold); margin-top: 16px; line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .checkout-layout { grid-template-columns: 1fr; }
+    .order-summary { position: static; order: -1; }
+    .field-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <svg width="24" height="24" viewBox="0 0 26 26" fill="none"><path d="M14.5 3C10 3 6.5 6.8 6.5 11.5C6.5 16.2 10.3 20 15 20C17.2 20 19.2 19.1 20.6 17.7C19 20.9 15.7 23 12 23C6.5 23 2 18.5 2 13C2 7.5 6.5 3 12 3C12.9 3 13.7 3.1 14.5 3.3V3Z" fill="#DCC8FF"/></svg>
+      Witchcraft
+    </a>
+    <div class="secure-badge">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6.5" width="8" height="6" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M4.8 6.5V5a2.2 2.2 0 0 1 4.4 0v1.5" stroke="currentColor" stroke-width="1.1"/></svg>
+      Secure checkout
+    </div>
+  </div>
+</header>
+
+<div class="wrap page-head">
+  <h1>Checkout</h1>
+  <div class="step-count">Step 2 of 2 — Delivery &amp; payment</div>
+</div>
+
+<div class="wrap checkout-layout">
+  <div>
+    <form id="checkoutForm">
+      <div class="form-section">
+        <h2><span class="step-num">1</span> Contact &amp; delivery address</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input type="text" id="fullName" name="fullName" placeholder="Your name" required>
+            <span class="err-msg">Please enter your full name</span>
+          </div>
+          <div class="field">
+            <label for="phone">Phone number</label>
+            <input type="tel" id="phone" name="phone" placeholder="10-digit mobile number" maxlength="10" required>
+            <span class="err-msg">Enter a valid 10-digit number</span>
+          </div>
+          <div class="field full">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            <span class="err-msg">Enter a valid email address</span>
+          </div>
+          <div class="field full">
+            <label for="country">Country</label>
+            <select id="country" name="country"><option value="IN">India</option></select>
+          </div>
+          <div class="field full">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="House no., street, area" required>
+            <span class="err-msg">Please enter your address</span>
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="City" required>
+            <span class="err-msg">Please enter your city</span>
+          </div>
+          <div class="field">
+            <label for="state" id="stateLabel">State</label>
+            <select id="state" name="state" required>
+              <option value="">Select state</option>
+              <option>Andhra Pradesh</option><option>Delhi</option><option>Gujarat</option>
+              <option>Karnataka</option><option>Maharashtra</option><option>Rajasthan</option>
+              <option>Tamil Nadu</option><option>Telangana</option><option>Uttar Pradesh</option>
+              <option>West Bengal</option><option>Other</option>
+            </select>
+            <span class="err-msg">Please select a state</span>
+          </div>
+          <div class="field">
+            <label for="pincode" id="pincodeLabel">Pincode</label>
+            <input type="text" id="pincode" name="pincode" placeholder="6-digit pincode" maxlength="6" required>
+            <span class="err-msg">Enter a valid 6-digit pincode</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2><span class="step-num">2</span> Payment method</h2>
+        <div class="payment-options" id="paymentOptions">
+          <label class="payment-option selected" id="rzpOption">
+            <input type="radio" name="payment" value="razorpay" checked>
+            <span class="label">UPI / Cards / Netbanking</span>
+            <span class="icons"><span>UPI</span><span>Visa</span><span>MC</span></span>
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="cod">
+            <span class="label">Cash on delivery</span>
+            <span class="sub">Pay when your order arrives</span>
+          </label>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <aside class="order-summary">
+    <h2>Order summary</h2>
+    <div id="miniCartItems"></div>
+    <div class="summary-row"><span>Subtotal</span><span class="amt" id="sumSubtotal">₹0</span></div>
+    <div class="summary-row"><span>Shipping</span><span class="amt" id="sumShipping">Free</span></div>
+    <div class="summary-row" id="codFeeRow" style="display:none;"><span>COD handling</span><span class="amt">₹40</span></div>
+    <div class="summary-row total"><span>Total</span><span class="amt" id="sumTotal">₹0</span></div>
+
+    <button class="btn-pay" id="payBtn" type="button">
+      <span class="spinner"></span>
+      <span class="btn-label" id="payBtnLabel">Pay ₹0</span>
+    </button>
+    <div class="trust-note">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1 8.5 4l3.5.4-2.6 2.4.8 3.7L7 9.6 3.8 11.5l.8-3.7L2 5.4 5.5 5 7 1Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>
+      Secure, encrypted checkout
+    </div>
+    
+  </aside>
+</div>
+
+<script src="cart-shared.js"></script>
+<script src="currency-shared.js"></script>
+<script src="store.js"></script>
+<script>
+// ---------- Render order summary ----------
+function renderSummary() {
+  const items = Object.values(cart);
+  if (items.length === 0) {
+    window.location.href = 'cart.html';
+    return;
+  }
+  document.getElementById('miniCartItems').innerHTML = items.map(i => `
+    <div class="mini-line">
+      <div class="thumb"><img src="${i.image}" alt="${i.name}"></div>
+      <div class="name">${i.name} <span class="qty">× ${i.qty}</span></div>
+      <div class="price">${fmtINR(i.price * i.qty)}</div>
+    </div>
+  `).join('');
+
+  updateTotals();
+}
+
+function selectedPaymentMethod() {
+  return document.querySelector('input[name="payment"]:checked').value;
+}
+
+// COD only makes sense for domestic (India) orders — hide it for detected
+// international visitors, since Shiprocket COD doesn't apply cross-border.
+function updatePaymentOptionsForCurrency() {
+  const codOption = document.querySelector('.payment-option:has(input[value="cod"])');
+  if (!codOption) return;
+  if (currentCurrency.code !== 'INR') {
+    codOption.style.display = 'none';
+    document.querySelector('input[value="razorpay"]').checked = true;
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    document.querySelector('.payment-option:has(input[value="razorpay"])').classList.add('selected');
+  } else {
+    codOption.style.display = '';
+  }
+}
+
+function updateTotals() {
+  // All amounts computed in INR internally (the catalog's base currency),
+  // then formatted for display in whatever currency was detected.
+  const subtotalINR = cartSubtotal();
+  const shippingFree = subtotalINR >= 999;
+  const shippingCostINR = shippingFree ? 0 : 79;
+  const isCod = selectedPaymentMethod() === 'cod' && currentCurrency.code === 'INR';
+  const codFeeINR = 0;
+
+  document.getElementById('sumSubtotal').textContent = fmtLocal(subtotalINR);
+  document.getElementById('sumShipping').textContent = shippingFree ? 'Free' : fmtLocal(shippingCostINR);
+  document.getElementById('codFeeRow').style.display = 'none';
+
+  const totalINR = subtotalINR + shippingCostINR + codFeeINR;
+  document.getElementById('sumTotal').textContent = fmtLocal(totalINR);
+  document.getElementById('payBtnLabel').textContent = isCod
+    ? `Place order — ${fmtLocal(totalINR)}`
+    : `Pay ${fmtLocal(totalINR)}`;
+  return totalINR;
+}
+
+// ---------- Payment method toggle ----------
+document.querySelectorAll('.payment-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    updateTotals();
+  });
+});
+
+// ---------- Form validation ----------
+function validateForm() {
+  const isIndia = currentCurrency.code === 'INR';
+  const form = document.getElementById('checkoutForm');
+  let valid = true;
+  const fields = [
+    { id: 'fullName', test: v => v.trim().length > 1 },
+    { id: 'phone', test: v => isIndia ? /^[6-9]\d{9}$/.test(v) : v.trim().length >= 6 },
+    { id: 'email', test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+    { id: 'address', test: v => v.trim().length > 4 },
+    { id: 'city', test: v => v.trim().length > 1 },
+    { id: 'state', test: v => v !== '' },
+    { id: 'pincode', test: v => isIndia ? /^\d{6}$/.test(v) : v.trim().length >= 3 },
+  ];
+  fields.forEach(f => {
+    const el = document.getElementById(f.id);
+    const ok = f.test(el.value);
+    el.classList.toggle('error', !ok);
+    const errEl = el.parentElement.querySelector('.err-msg');
+    if (errEl) errEl.classList.toggle('show', !ok);
+    if (!ok) valid = false;
+  });
+  return valid;
+}
+
+// ---------- Place order through the store backend (Vendure Shop API) ----------
+const payBtn = document.getElementById('payBtn');
+let STORE_CFG = { razorpayKeyId: null, cod: true };
+
+const Q_ERR = '... on ErrorResult { errorCode message }';
+async function buildOrder() {
+  try { await shopGql('mutation { removeAllOrderLines { __typename } }'); } catch (e) {}
+  for (const i of Object.values(cart)) {
+    const d = await shopGql(`mutation($id: ID!, $q: Int!) { addItemToOrder(productVariantId: $id, quantity: $q) { __typename ${Q_ERR} } }`, { id: String(i.id), q: i.qty });
+    if (d.addItemToOrder.errorCode) throw new Error(`${i.name}: ${d.addItemToOrder.message}`);
+  }
+  const full = document.getElementById('fullName').value.trim();
+  const parts = full.split(/\s+/);
+  const firstName = parts.shift(), lastName = parts.join(' ') || '-';
+  const phone = document.getElementById('phone').value.trim();
+  let d = await shopGql(`mutation($i: CreateCustomerInput!) { setCustomerForOrder(input: $i) { __typename ${Q_ERR} } }`,
+    { i: { firstName, lastName, emailAddress: document.getElementById('email').value.trim(), phoneNumber: phone } });
+  if (d.setCustomerForOrder.errorCode) throw new Error(d.setCustomerForOrder.message);
+  d = await shopGql(`mutation($i: CreateAddressInput!) { setOrderShippingAddress(input: $i) { __typename ${Q_ERR} } }`,
+    { i: { fullName: full, streetLine1: document.getElementById('address').value.trim(), city: document.getElementById('city').value.trim(),
+           province: document.getElementById('state').value, postalCode: document.getElementById('pincode').value.trim(), countryCode: 'IN', phoneNumber: phone } });
+  if (d.setOrderShippingAddress.errorCode) throw new Error(d.setOrderShippingAddress.message);
+  d = await shopGql('{ eligibleShippingMethods { id name priceWithTax } }');
+  const methods = d.eligibleShippingMethods.slice().sort((a, b) => a.priceWithTax - b.priceWithTax);
+  if (!methods.length) throw new Error('Shipping is not available for this address yet.');
+  d = await shopGql(`mutation($id: [ID!]!) { setOrderShippingMethod(shippingMethodId: $id) { __typename ${Q_ERR} } }`, { id: [methods[0].id] });
+  if (d.setOrderShippingMethod.errorCode) throw new Error(d.setOrderShippingMethod.message);
+  d = await shopGql(`mutation { transitionOrderToState(state: "ArrangingPayment") { __typename ... on OrderStateTransitionError { message transitionError } } }`);
+  if (d.transitionOrderToState.message) throw new Error(d.transitionOrderToState.transitionError || d.transitionOrderToState.message);
+}
+
+async function addPayment(method, metadata) {
+  const d = await shopGql(`mutation($i: PaymentInput!) { addPaymentToOrder(input: $i) { __typename ... on Order { code state totalWithTax shippingWithTax subTotalWithTax } ${Q_ERR} } }`,
+    { i: { method, metadata: metadata || {} } });
+  if (d.addPaymentToOrder.errorCode) throw new Error(d.addPaymentToOrder.message);
+  return d.addPaymentToOrder;
+}
+
+function finish(order, method) {
+  const result = {
+    orderId: order.code,
+    items: Object.values(cart),
+    total: order.totalWithTax / 100,
+    totalINR: order.totalWithTax / 100,
+    shipping: order.shippingWithTax / 100,
+    method: method,
+    customer: {
+      name: document.getElementById('fullName').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      address: document.getElementById('address').value,
+      city: document.getElementById('city').value,
+      state: document.getElementById('state').value,
+      pincode: document.getElementById('pincode').value,
+      country: 'IN',
+    },
+    placedAt: new Date().toISOString(),
+  };
+  try { sessionStorage.setItem('lunar_lore_last_order', JSON.stringify(result)); sessionStorage.removeItem('vs_token'); } catch (e) {}
+  clearCart();
+  window.location.href = 'order-confirmation.html';
+}
+
+function resetBtn() { payBtn.classList.remove('loading'); payBtn.disabled = false; }
+
+payBtn.addEventListener('click', async () => {
+  if (!validateForm()) {
+    document.querySelector('.field input.error, .field select.error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const method = selectedPaymentMethod();
+  payBtn.classList.add('loading');
+  payBtn.disabled = true;
+  try {
+    await buildOrder();
+    if (method === 'cod') {
+      finish(await addPayment('cod'), 'cod');
+      return;
+    }
+    const d = await shopGql('mutation { createRazorpayOrder { razorpayOrderId amount currency keyId } }');
+    const rp = d.createRazorpayOrder;
+    const rzp = new Razorpay({
+      key: rp.keyId, amount: rp.amount, currency: rp.currency, order_id: rp.razorpayOrderId,
+      name: 'Witchcraft', description: 'Order payment',
+      prefill: { name: document.getElementById('fullName').value, email: document.getElementById('email').value, contact: document.getElementById('phone').value },
+      theme: { color: '#8B6FD8' },
+      handler: async function (resp) {
+        try {
+          finish(await addPayment('razorpay', { razorpay_payment_id: resp.razorpay_payment_id, razorpay_order_id: resp.razorpay_order_id, razorpay_signature: resp.razorpay_signature }), 'razorpay');
+        } catch (e) { resetBtn(); alert('Payment received but order confirmation failed: ' + e.message + '. Please contact us with payment id ' + resp.razorpay_payment_id); }
+      },
+      modal: { ondismiss: resetBtn },
+    });
+    rzp.on('payment.failed', () => { resetBtn(); alert('Payment failed. Please try again.'); });
+    rzp.open();
+  } catch (e) {
+    resetBtn();
+    alert('Could not place your order: ' + e.message);
+  }
+});
+
+// Online payment is offered only once Razorpay keys are configured on the store.
+storeGet('/config').then(c => {
+  STORE_CFG = c;
+  const rzp = document.getElementById('rzpOption');
+  if (!c.razorpayKeyId && rzp) {
+    rzp.style.display = 'none';
+    const cod = document.querySelector('input[value="cod"]');
+    if (cod) { cod.checked = true; document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected')); cod.closest('.payment-option').classList.add('selected'); }
+  }
+  updateTotals();
+}).catch(() => {});
+
+renderSummary();
+(function(){ document.addEventListener('DOMContentLoaded', function(){ const st = document.getElementById('state'); if (st && st.tagName === 'SELECT') st.innerHTML = '<option value="">Select state</option>' + INDIA_STATES.map(x => `<option>${x}</option>`).join(''); }); })();
+
+// ---------- Country-dependent address fields ----------
+const INDIA_STATES = ['Andaman and Nicobar Islands','Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chandigarh','Chhattisgarh','Dadra and Nagar Haveli and Daman and Diu','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jammu and Kashmir','Jharkhand','Karnataka','Kerala','Ladakh','Lakshadweep','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Puducherry','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal'];
+
+function updateAddressFieldsForCountry() {
+  const country = document.getElementById('country').value;
+  const stateEl = document.getElementById('state');
+  const stateLabel = document.getElementById('stateLabel');
+  const pincodeEl = document.getElementById('pincode');
+  const pincodeLabel = document.getElementById('pincodeLabel');
+
+  if (country === 'IN') {
+    pincodeLabel.textContent = 'Pincode';
+    pincodeEl.placeholder = '6-digit pincode';
+    pincodeEl.maxLength = 6;
+    if (stateEl.tagName !== 'SELECT') {
+      const select = document.createElement('select');
+      select.id = 'state'; select.name = 'state'; select.required = true;
+      select.innerHTML = '<option value="">Select state</option>' + INDIA_STATES.map(s => `<option>${s}</option>`).join('');
+      stateEl.replaceWith(select);
+    }
+    stateLabel.textContent = 'State';
+  } else {
+    pincodeLabel.textContent = 'Postal / ZIP code';
+    pincodeEl.placeholder = 'Postal code';
+    pincodeEl.removeAttribute('maxlength');
+    if (document.getElementById('state').tagName === 'SELECT') {
+      const input = document.createElement('input');
+      input.type = 'text'; input.id = 'state'; input.name = 'state'; input.required = true;
+      input.placeholder = 'State / Province / Region';
+      document.getElementById('state').replaceWith(input);
+    }
+    stateLabel.textContent = 'State / Province';
+  }
+}
+
+document.getElementById('country').addEventListener('change', function() {
+  this.dataset.userChanged = 'true';
+  updateAddressFieldsForCountry();
+});
+
+updatePaymentOptionsForCurrency();
+// re-check payment options and totals once currency detection resolves
+setTimeout(() => { updatePaymentOptionsForCurrency(); updateTotals(); }, 1200);
+</script>
+
+</body>
+</html>

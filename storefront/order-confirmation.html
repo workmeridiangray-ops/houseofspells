@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Order Confirmed | Witchcraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --midnight: #0E0B1D; --surface: #17122A; --surface-2: #1E1836;
+    --amethyst: #8B6FD8; --amethyst-bright: #A489E8; --moon-gold: #F2D3A1;
+    --lavender: #DCC8FF; --ivory: #F9F6EF; --ivory-dim: rgba(249, 246, 239, 0.62);
+    --ivory-faint: rgba(249, 246, 239, 0.38); --hairline: rgba(220, 200, 255, 0.14); --success: #7FC99A;
+    --font-display: 'Fraunces', serif; --font-body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--midnight); color: var(--ivory); font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased; padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px); min-height: 100vh;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 720px; margin: 0 auto; padding-left: clamp(20px, 4vw, 56px); padding-right: clamp(20px, 4vw, 56px); }
+
+  header {
+    background: rgba(14, 11, 29, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--hairline);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: center; height: 76px; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 21px; font-weight: 500; }
+
+  .confirm-hero { text-align: center; padding: 64px 0 40px; }
+  .check-badge {
+    width: 76px; height: 76px; border-radius: 50%; background: rgba(127,201,154,0.12); border: 1.5px solid var(--success);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 26px; color: var(--success);
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .confirm-hero h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 3.4vw, 36px); margin-bottom: 10px; }
+  .confirm-hero p { color: var(--ivory-dim); font-size: 15px; max-width: 40ch; margin: 0 auto; }
+  .order-id-chip {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; background: var(--surface);
+    border: 1px solid var(--hairline); padding: 9px 18px; border-radius: 100px; font-size: 13px; color: var(--ivory-faint);
+  }
+  .order-id-chip b { color: var(--moon-gold); font-family: var(--font-display); font-size: 14px; }
+
+  .detail-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; padding: 26px; margin-bottom: 20px; }
+  .detail-card h2 { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+  .order-line { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+  .order-line:last-child { border-bottom: none; }
+  .order-line .thumb { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; background: var(--surface-2); flex-shrink: 0; }
+  .order-line .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .order-line .name { font-size: 13.5px; flex: 1; line-height: 1.4; }
+  .order-line .qty { font-size: 12px; color: var(--ivory-faint); }
+  .order-line .price { font-size: 13.5px; color: var(--moon-gold); font-weight: 600; white-space: nowrap; }
+
+  .order-total-row { display: flex; justify-content: space-between; padding-top: 16px; margin-top: 6px; border-top: 1px solid var(--hairline); font-size: 15px; font-weight: 600; }
+  .order-total-row .amt { font-family: var(--font-display); font-size: 20px; color: var(--moon-gold); font-weight: 400; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .info-block h3 { font-size: 12px; color: var(--ivory-faint); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .info-block p { font-size: 13.5px; color: var(--ivory-dim); line-height: 1.6; }
+
+  .timeline { display: flex; justify-content: space-between; margin-top: 8px; position: relative; }
+  .timeline::before { content: ''; position: absolute; top: 13px; left: 24px; right: 24px; height: 1px; background: var(--hairline); }
+  .timeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; z-index: 1; flex: 1; }
+  .timeline-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--surface-2); border: 1.5px solid var(--hairline); display: flex; align-items: center; justify-content: center; }
+  .timeline-step.done .timeline-dot { background: var(--amethyst); border-color: var(--amethyst); color: var(--midnight); }
+  .timeline-step span.lbl { font-size: 11px; color: var(--ivory-faint); text-align: center; }
+  .timeline-step.done span.lbl { color: var(--ivory-dim); }
+
+  .action-row { display: flex; gap: 12px; margin-top: 32px; padding-bottom: 60px; }
+  .btn-primary, .btn-outline {
+    flex: 1; padding: 14px; border-radius: 100px; font-size: 13.5px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+  }
+  .btn-primary { background: var(--amethyst); color: var(--midnight); }
+  .btn-primary:hover { background: var(--amethyst-bright); }
+  .btn-outline { border: 1.5px solid var(--hairline); color: var(--ivory); }
+  .btn-outline:hover { border-color: var(--amethyst); background: var(--surface-2); }
+
+  @media (max-width: 560px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .action-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="24" height="24" viewBox="0 0 26 26" fill="none"><path d="M14.5 3C10 3 6.5 6.8 6.5 11.5C6.5 16.2 10.3 20 15 20C17.2 20 19.2 19.1 20.6 17.7C19 20.9 15.7 23 12 23C6.5 23 2 18.5 2 13C2 7.5 6.5 3 12 3C12.9 3 13.7 3.1 14.5 3.3V3Z" fill="#DCC8FF"/></svg>
+      Witchcraft
+    </a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="confirm-hero">
+    <div class="check-badge">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><path d="M9 17.5 14.5 23 25.5 11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1 id="confirmHeading">Order confirmed</h1>
+    <p id="confirmSub">Thank you — your order is on its way to being wrapped with care. A confirmation email is on its way to you.</p>
+    <div class="order-id-chip">
+      Order <b id="orderIdChip">—</b>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <h2>What you ordered</h2>
+    <div id="orderItems"></div>
+    <div class="order-total-row">
+      <span>Total paid</span>
+      <span class="amt" id="orderTotal">₹0</span>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <h2>Delivery timeline</h2>
+    <div class="timeline">
+      <div class="timeline-step done">
+        <div class="timeline-dot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5L9.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="lbl">Order placed</span>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot"></div>
+        <span class="lbl">Packed</span>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot"></div>
+        <span class="lbl">Shipped</span>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot"></div>
+        <span class="lbl">Delivered</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <div class="info-grid">
+      <div class="info-block">
+        <h3>Shipping to</h3>
+        <p id="shipAddress">—</p>
+      </div>
+      <div class="info-block">
+        <h3>Payment method</h3>
+        <p id="paymentMethod">—</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <a href="index.html" class="btn-outline">Continue shopping</a>
+    <a href="#" class="btn-primary" id="trackOrderBtn">
+      Track order
+      <svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M3 7.5h9M8.5 3l4.5 4.5L8.5 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<script>
+function fmtINR(n) {
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+let order = null;
+try {
+  order = JSON.parse(sessionStorage.getItem('lunar_lore_last_order') || 'null');
+} catch (e) {}
+
+if (!order) {
+  document.getElementById('confirmHeading').textContent = 'No recent order found';
+  document.getElementById('confirmSub').textContent = "We couldn't find a recent order in this session.";
+  document.getElementById('orderIdChip').closest('.order-id-chip').style.display = 'none';
+  document.querySelector('.detail-card').style.display = 'none';
+  document.querySelectorAll('.detail-card')[1].style.display = 'none';
+  document.querySelectorAll('.detail-card')[2].style.display = 'none';
+} else {
+  document.getElementById('orderIdChip').textContent = order.orderId;
+  document.getElementById('orderItems').innerHTML = order.items.map(i => `
+    <div class="order-line">
+      <div class="thumb"><img src="${i.image}" alt="${i.name}"></div>
+      <div class="name">${i.name} <span class="qty">× ${i.qty}</span></div>
+      <div class="price">${fmtINR(i.price * i.qty)}</div>
+    </div>
+  `).join('');
+  document.getElementById('orderTotal').textContent = fmtINR(order.total);
+  document.getElementById('shipAddress').textContent =
+    `${order.customer.name}, ${order.customer.address}, ${order.customer.city}, ${order.customer.state} — ${order.customer.pincode}`;
+  document.getElementById('paymentMethod').textContent =
+    order.method === 'cod' ? 'Cash on delivery' : 'Paid online via Razorpay';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Shop All — Witchcraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --midnight: #0E0B1D;
+    --surface: #17122A;
+    --surface-2: #1E1836;
+    --amethyst: #8B6FD8;
+    --amethyst-bright: #A489E8;
+    --moon-gold: #F2D3A1;
+    --lavender: #DCC8FF;
+    --ivory: #F9F6EF;
+    --ivory-dim: rgba(249, 246, 239, 0.62);
+    --ivory-faint: rgba(249, 246, 239, 0.38);
+    --hairline: rgba(220, 200, 255, 0.14);
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--midnight); color: var(--ivory); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  ::selection { background: var(--amethyst); color: var(--midnight); }
+
+  header { position: sticky; top: 0; z-index: 40; background: rgba(14, 11, 29, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--hairline); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; gap: 24px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 21px; font-weight: 500; flex-shrink: 0; }
+  .logo-sub { display: block; font-family: var(--font-body); font-size: 9.5px; letter-spacing: 0.16em; color: var(--ivory-faint); font-weight: 500; margin-top: 1px; }
+  nav.primary-nav { display: flex; align-items: center; gap: 32px; }
+  nav.primary-nav a { font-size: 14.5px; color: var(--ivory-dim); transition: color 0.15s ease; white-space: nowrap; }
+  nav.primary-nav a:hover, nav.primary-nav a.active { color: var(--ivory); }
+  @media (max-width: 860px) { nav.primary-nav { display: none; } }
+
+  .nav-dropdown { position: relative; }
+  .nav-dropdown > .nav-dropdown-trigger { display: flex; align-items: center; gap: 5px; cursor: pointer; background: none; border: none; font-family: var(--font-body); font-size: 14.5px; color: var(--ivory-dim); padding: 0; transition: color 0.15s ease; }
+  .nav-dropdown > .nav-dropdown-trigger svg { transition: transform 0.15s ease; }
+  .nav-dropdown:hover > .nav-dropdown-trigger { color: var(--ivory); }
+  .nav-dropdown:hover > .nav-dropdown-trigger svg { transform: rotate(180deg); }
+  .nav-dropdown-menu { position: absolute; top: calc(100% + 16px); left: 50%; transform: translateX(-50%) translateY(6px); min-width: 190px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 8px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); opacity: 0; visibility: hidden; transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s; z-index: 50; }
+  .nav-dropdown:hover .nav-dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+  .nav-dropdown-menu a { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; color: var(--ivory-dim); white-space: nowrap; }
+  .nav-dropdown-menu a:hover { background: var(--surface-2); color: var(--ivory); }
+  .nav-dropdown-menu a .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .cat-dot.tarot { background: var(--lavender); }
+  .cat-dot.numerology { background: var(--moon-gold); }
+  .cat-dot.rituals { background: #e9a8c2; }
+  .nav-dropdown-menu .view-all-link { border-top: 1px solid var(--hairline); margin-top: 6px; padding-top: 12px; color: var(--amethyst-bright); font-weight: 600; justify-content: flex-start; }
+
+  .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: var(--ivory-dim); display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; position: relative; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ivory); }
+  .cart-count { position: absolute; top: 2px; right: 2px; background: var(--amethyst); color: var(--midnight); font-size: 10px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+  .shop-hero { padding: 48px 0 24px; text-align: center; border-bottom: 1px solid var(--hairline); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lavender); margin-bottom: 14px; }
+  h1 { font-family: var(--font-display); font-size: clamp(30px, 4.5vw, 44px); font-weight: 500; margin-bottom: 10px; }
+  h1 em { color: var(--amethyst-bright); font-style: italic; }
+  .shop-hero p { color: var(--ivory-dim); font-size: 15px; }
+  .shop-hero p strong { color: var(--moon-gold); font-weight: 600; }
+
+  .toolbar { position: sticky; top: 76px; z-index: 30; background: rgba(14, 11, 29, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--hairline); padding: 16px 0; }
+  .toolbar-inner { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .search-input { flex: 1; min-width: 200px; padding: 11px 16px; border-radius: 100px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ivory); font-size: 14px; font-family: var(--font-body); }
+  .search-input:focus { outline: none; border-color: var(--amethyst); }
+  .search-input::placeholder { color: var(--ivory-faint); }
+  select.cat-select, select.sort-select { padding: 11px 14px; border-radius: 100px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ivory); font-size: 13.5px; font-family: var(--font-body); cursor: pointer; }
+  select.cat-select:focus, select.sort-select:focus { outline: none; border-color: var(--amethyst); }
+  .result-count { font-size: 13px; color: var(--ivory-faint); white-space: nowrap; }
+
+  .shop-body { padding: 28px 0 80px; }
+  .product-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+  @media (max-width: 1180px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 920px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+
+  .product-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.15s ease, transform 0.15s ease; }
+  .product-card:hover { border-color: var(--amethyst); transform: translateY(-2px); }
+  .product-card .thumb { display: block; aspect-ratio: 1; background: var(--surface-2); overflow: hidden; }
+  .product-card .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .product-card .info { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .product-card .cat-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ivory-faint); }
+  .product-card .name { font-size: 13.5px; line-height: 1.4; color: var(--ivory); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+  .product-card .price-row { display: flex; align-items: baseline; gap: 8px; margin-top: auto; padding-top: 4px; }
+  .product-card .price { font-weight: 600; color: var(--moon-gold); font-size: 15px; }
+  .product-card .compare-price { font-size: 12px; color: var(--ivory-faint); text-decoration: line-through; }
+  .product-card .add-btn { margin-top: 8px; width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--hairline); background: transparent; color: var(--ivory-dim); font-size: 12.5px; font-family: var(--font-body); cursor: pointer; transition: all 0.15s ease; }
+  .product-card .add-btn:hover, .product-card .add-btn.added { background: var(--amethyst); border-color: var(--amethyst); color: var(--midnight); font-weight: 600; }
+
+  .empty-state { text-align: center; padding: 80px 0; color: var(--ivory-faint); grid-column: 1 / -1; }
+  .loading-state { text-align: center; padding: 60px 0; color: var(--ivory-faint); grid-column: 1 / -1; }
+
+  .load-more-row { display: flex; justify-content: center; padding-top: 40px; }
+  .load-more-btn { padding: 13px 32px; border-radius: 100px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ivory); font-size: 14px; font-family: var(--font-body); cursor: pointer; transition: all 0.15s ease; }
+  .load-more-btn:hover { border-color: var(--amethyst); }
+  .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--amethyst); color: var(--ivory); padding: 12px 20px; border-radius: 100px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer { border-top: 1px solid var(--hairline); padding: 32px 0; text-align: center; color: var(--ivory-faint); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <path d="M14.5 3C10 3 6.5 6.8 6.5 11.5C6.5 16.2 10.3 20 15 20C17.2 20 19.2 19.1 20.6 17.7C19 20.9 15.7 23 12 23C6.5 23 2 18.5 2 13C2 7.5 6.5 3 12 3C12.9 3 13.7 3.1 14.5 3.3V3Z" fill="#DCC8FF"/>
+        <circle cx="20" cy="6" r="1.3" fill="#F2D3A1"/>
+        <circle cx="23" cy="10" r="0.8" fill="#F2D3A1"/>
+      </svg>
+      <span>Witchcraft<span class="logo-sub">CRYSTALS &amp; RITUAL GOODS</span></span>
+    </a>
+    <nav class="primary-nav" aria-label="Primary">
+      <a href="shop.html" class="active">Shop all</a>
+      <a href="index.html#about">About</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-trigger" aria-haspopup="true">
+          Journal
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="nav-dropdown-menu">
+          <a href="journal.html?cat=Tarot"><span><span class="cat-dot tarot"></span> Tarot</span></a>
+          <a href="journal.html?cat=Numerology"><span><span class="cat-dot numerology"></span> Numerology</span></a>
+          <a href="journal.html?cat=Rituals"><span><span class="cat-dot rituals"></span> Rituals &amp; Spells</span></a>
+          <a href="journal.html" class="view-all-link">View all articles →</a>
+        </div>
+      </div>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn" href="cart.html" aria-label="Open cart">
+        <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M4 6h13l-1.3 8.2a2 2 0 0 1-2 1.7H7.3a2 2 0 0 1-2-1.7L4 6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 6V5a3 3 0 0 1 6 0v1" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="shop-hero">
+    <div class="wrap">
+      <div class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8 1.5C5.5 1.5 3.5 3.6 3.5 6.2c0 2.6 2.1 4.7 4.6 4.7 1.2 0 2.3-.5 3.1-1.3-.9 1.7-2.7 2.9-4.7 2.9-3 0-5.5-2.5-5.5-5.5S3.5 1.5 6.5 1.5c.5 0 1 .1 1.5.2v-.2Z" fill="#A489E8"/></svg>
+        The Full Collection
+      </div>
+      <h1>Every piece, <em>all in one place</em></h1>
+      <p id="heroCount">Loading the full catalog…</p>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="wrap toolbar-inner">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search all products…" />
+      <select class="cat-select" id="catSelect">
+        <option value="">All categories</option>
+      </select>
+      <select class="sort-select" id="sortSelect">
+        <option value="relevance">Sort: Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name-asc">Name: A–Z</option>
+      </select>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+  </div>
+
+  <div class="wrap shop-body">
+    <div class="product-grid" id="productGrid">
+      <div class="loading-state">Loading products…</div>
+    </div>
+    <div class="load-more-row" id="loadMoreRow" style="display:none;">
+      <button class="load-more-btn" id="loadMoreBtn">Load more products</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Witchcraft. All rights reserved.</div>
+</footer>
+
+<div class="toast" id="toast">
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5 7.5 7 9.5 10.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="toastMsg">Added to cart</span>
+</div>
+
+<script src="cart-shared.js"></script>
+<script src="currency-shared.js"></script>
+<script src="store.js"></script>
+<script>
+const PAGE_SIZE = 30;
+let CATS = [];
+let loaded = {};
+let shown = 0, total = 0, reqId = 0;
+
+function fmtPrice(n) { return '₹' + Math.round(Number(n)).toLocaleString('en-IN'); }
+
+function productCard(p) {
+  loaded[p.id] = p;
+  return `
+    <div class="product-card" data-id="${p.id}">
+      <a href="product.html?slug=${encodeURIComponent(p.slug)}" class="thumb">
+        <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">
+      </a>
+      <div class="info">
+        <span class="cat-label">${esc(p.category)}</span>
+        <a href="product.html?slug=${encodeURIComponent(p.slug)}" class="name">${esc(p.name)}</a>
+        <div class="price-row"><span class="price">${fmtPrice(p.price)}</span></div>
+        <button class="add-btn" data-pid="${p.id}" onclick="addToCart(${p.id}, this)">Add to cart</button>
+      </div>
+    </div>`;
+}
+
+function addToCart(id, btnEl) {
+  const p = loaded[id];
+  if (!p) return;
+  addItemToCart(p, 1);
+  showToast('Added to cart');
+  if (btnEl) {
+    btnEl.textContent = 'Added ✓';
+    btnEl.classList.add('added');
+    setTimeout(() => { btnEl.textContent = 'Add to cart'; btnEl.classList.remove('added'); }, 1200);
+  }
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+async function load(reset) {
+  const my = ++reqId;
+  const grid = document.getElementById('productGrid');
+  const btn = document.getElementById('loadMoreBtn');
+  if (reset) { shown = 0; grid.innerHTML = '<div class="loading-state">Loading products…</div>'; }
+  btn.disabled = true;
+  const sortMap = { relevance: 'new', 'price-asc': 'price-asc', 'price-desc': 'price-desc', 'name-asc': 'name-asc' };
+  const qs = new URLSearchParams({
+    cat: document.getElementById('catSelect').value,
+    q: document.getElementById('searchInput').value.trim(),
+    sort: sortMap[document.getElementById('sortSelect').value] || 'new',
+    skip: shown, take: PAGE_SIZE,
+  });
+  try {
+    const data = await storeGet('/catalog?' + qs.toString());
+    if (my !== reqId) return;
+    total = data.total;
+    if (reset) grid.innerHTML = '';
+    if (total === 0) {
+      grid.innerHTML = '<div class="empty-state">No products match your search. Try a different term or category.</div>';
+      document.getElementById('loadMoreRow').style.display = 'none';
+      document.getElementById('resultCount').textContent = '0 products';
+      return;
+    }
+    grid.insertAdjacentHTML('beforeend', data.items.map(productCard).join(''));
+    shown += data.items.length;
+    document.getElementById('resultCount').textContent = `${total.toLocaleString('en-IN')} products — showing ${shown.toLocaleString('en-IN')}`;
+    document.getElementById('loadMoreRow').style.display = shown < total ? 'flex' : 'none';
+  } catch (e) {
+    if (my !== reqId) return;
+    grid.innerHTML = '<div class="empty-state">Couldn\'t load products. Please refresh.</div>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('loadMoreBtn').addEventListener('click', () => load(false));
+let searchDebounce;
+document.getElementById('searchInput').addEventListener('input', () => { clearTimeout(searchDebounce); searchDebounce = setTimeout(() => load(true), 300); });
+document.getElementById('catSelect').addEventListener('change', () => load(true));
+document.getElementById('sortSelect').addEventListener('change', () => load(true));
+
+async function init() {
+  const params = new URLSearchParams(location.search);
+  try {
+    CATS = await storeGet('/categories');
+    const all = CATS.reduce((s, c) => s + c.count, 0);
+    document.getElementById('heroCount').innerHTML = `Browsing all <strong>${all.toLocaleString('en-IN')}</strong> products across the collection.`;
+    const sel = document.getElementById('catSelect');
+    sel.innerHTML = '<option value="">All categories</option>' + CATS.map(c => `<option value="${esc(c.slug)}">${esc(c.name)} (${c.count.toLocaleString('en-IN')})</option>`).join('');
+    const want = (params.get('cat') || '').toLowerCase();
+    if (want) {
+      const hit = CATS.find(c => c.slug === want || c.name.toLowerCase() === want);
+      if (hit) sel.value = hit.slug;
+    }
+  } catch (e) { /* category list is optional */ }
+  if (params.get('q')) document.getElementById('searchInput').value = params.get('q');
+  load(true);
+}
+init();
+</script>
+
+</body>
+</html>

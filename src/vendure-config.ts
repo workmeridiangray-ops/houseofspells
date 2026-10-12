@@ -6,12 +6,17 @@ import {
 import { AssetServerPlugin } from '@vendure/asset-server-plugin';
 import { AdminUiPlugin } from '@vendure/admin-ui-plugin';
 import path from 'path';
+import fs from 'fs';
 
 import { razorpayPaymentHandler } from './plugins/razorpay/razorpay-payment-handler';
+import { codPaymentHandler } from './plugins/cod-payment-handler';
 import { RazorpayPlugin } from './plugins/razorpay/razorpay.plugin';
 import { ShiprocketPlugin } from './plugins/shiprocket/shiprocket.plugin';
+import { StorefrontPlugin } from './plugins/storefront/storefront.plugin';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
+// storefront/ sits next to src/ (ts-node) or next to dist/ (compiled build)
+const STOREFRONT_DIR = [path.join(__dirname, '../storefront'), path.join(__dirname, '../../storefront')].find((d) => fs.existsSync(d)) || path.join(__dirname, '../storefront');
 
 export const config: VendureConfig = {
     apiOptions: {
@@ -20,6 +25,14 @@ export const config: VendureConfig = {
         shopApiPath: 'shop-api',
         // CORS wide-open for the local/dev preview; tighten before going live
         // (set an explicit origin list via CORS_ORIGINS env in production).
+        // Serve the storefront (storefront/ folder) from the same origin as the APIs.
+        middleware: [
+            {
+                route: '/',
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                handler: require('express').static(STOREFRONT_DIR, { index: 'index.html', extensions: ['html'], maxAge: '5m' }),
+            },
+        ],
         cors: {
             origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : true,
             credentials: true,
@@ -69,7 +82,7 @@ export const config: VendureConfig = {
               migrations: [path.join(__dirname, '../migrations/*.+(js|ts)')],
           },
     paymentOptions: {
-        paymentMethodHandlers: [razorpayPaymentHandler],
+        paymentMethodHandlers: [razorpayPaymentHandler, codPaymentHandler],
     },
     // Custom fields carried over from the old Prisma Product model, so
     // nothing from the 30,616-product SEO-ready catalog gets dropped when
@@ -114,5 +127,6 @@ export const config: VendureConfig = {
         }),
         RazorpayPlugin,
         ShiprocketPlugin,
+        StorefrontPlugin,
     ],
 };
