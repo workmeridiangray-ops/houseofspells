@@ -109,7 +109,7 @@ export const config: VendureConfig = {
             port: 3002, // only used by Vendure's dev-watch mode; the built admin is served on the main port
             // Served from the same port as the API (hosts like Render expose one port).
             adminUiConfig: process.env.PUBLIC_URL
-                ? { apiHost: process.env.PUBLIC_URL, apiPort: 443 }
+                ? { apiHost: 'auto', apiPort: 'auto' } // use whatever origin the admin was loaded from
                 : { apiPort: Number(process.env.PORT) || 3000 },
         }),
         RazorpayPlugin,
