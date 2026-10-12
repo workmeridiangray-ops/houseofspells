@@ -15,7 +15,7 @@ import * as path from 'path';
 // MRP (struck-through price) lookup: source product URL -> [selling price, MRP], in rupees.
 // Only genuine-looking gaps (5-40%) are included. Shown only while the selling price still matches.
 const MRP: Record<string, [number, number]> = (() => {
-    for (const rel of ['../../../data/mrp.json', '../../data/mrp.json', '../data/mrp.json']) {
+    for (const rel of ['../../../../data/mrp.json', '../../../data/mrp.json', '../../../../../data/mrp.json']) {
         const p = path.join(__dirname, rel);
         if (fs.existsSync(p)) {
             try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { /* ignore */ }
