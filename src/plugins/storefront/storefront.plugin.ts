@@ -37,6 +37,18 @@ function card(r: any) {
     };
 }
 
+const cache = new Map<string, { at: number; data: any }>();
+const TTL = 120000;
+function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    const hit = cache.get(key);
+    if (hit && Date.now() - hit.at < TTL) return Promise.resolve(hit.data);
+    return fn().then((data) => {
+        if (cache.size > 500) cache.clear();
+        cache.set(key, { at: Date.now(), data });
+        return data;
+    });
+}
+
 @Controller('store')
 export class StoreController {
     private catCache: { at: number; data: any[] } | null = null;
@@ -96,18 +108,20 @@ export class StoreController {
             : sort === 'price-desc' ? 'vp.price DESC, p.id ASC'
             : sort === 'name-asc' ? 'pt.name ASC, p.id ASC'
             : 'p.id DESC';
-        const [{ n }] = await this.q(`SELECT COUNT(DISTINCT p.id) AS n ${BASE}${extra}`, params);
-        const rows = await this.q(
-            `SELECT ${COLS} ${BASE}${extra} GROUP BY p.id ORDER BY ${order} LIMIT ? OFFSET ?`,
-            [...params, take, skip],
-        );
-        return { total: Number(n), items: rows.map(card) };
+        return cached(JSON.stringify([cat, term, sort, skip, take]), async () => {
+            const [{ n }] = await this.q(`SELECT COUNT(DISTINCT p.id) AS n ${BASE}${extra}`, params);
+            const rows = await this.q(
+                `SELECT ${COLS} ${BASE}${extra} GROUP BY p.id ORDER BY ${order} LIMIT ? OFFSET ?`,
+                [...params, take, skip],
+            );
+            return { total: Number(n), items: rows.map(card) };
+        });
     }
 
     @Get('picks')
     async picks(@Res({ passthrough: true }) res: any) {
         res.set('Cache-Control', 'public, max-age=300');
-        const rows = await this.q(`SELECT ${COLS} ${BASE} GROUP BY p.id ORDER BY p.id DESC LIMIT 400`);
+        const rows = await cached('picks', () => this.q(`SELECT ${COLS} ${BASE} GROUP BY p.id ORDER BY p.id DESC LIMIT 400`));
         // spread picks across categories, newest first
         const seen: Record<string, number> = {};
         const out: any[] = [];
