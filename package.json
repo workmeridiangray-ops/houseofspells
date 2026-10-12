@@ -1,0 +1,31 @@
+{
+  "name": "witchcraft-vendure",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "dev:worker": "ts-node src/index-worker.ts",
+    "build": "tsc",
+    "setup:base-data": "ts-node scripts/setup-base-data.ts",
+    "import:catalog": "ts-node scripts/import-catalog.ts",
+    "create-superadmin": "ts-node scripts/create-superadmin.ts",
+    "start": "node dist/src/index.js"
+  },
+  "dependencies": {
+    "@vendure/admin-ui-plugin": "3.7.3",
+    "@vendure/asset-server-plugin": "3.7.3",
+    "@vendure/core": "3.7.3",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^16.6.1",
+    "form-data": "^4.0.6",
+    "graphql-request": "^6.1.0",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/node-fetch": "^2.6.11",
+    "ts-node": "^10.9.2",
+    "typescript": "5.6.3"
+  }
+}
