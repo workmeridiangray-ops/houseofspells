@@ -102,6 +102,13 @@
   .load-more-btn:hover { border-color: var(--amethyst); }
   .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  .subchips { display: flex; gap: 8px; flex-wrap: wrap; padding: 18px 0 0; }
+  .subchips:empty { display: none; }
+  .subchip { padding: 8px 16px; border-radius: 100px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ivory-dim); font: 500 13px var(--font-body); cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+  .subchip:hover { border-color: var(--amethyst); color: var(--ivory); }
+  .subchip.on { background: var(--amethyst); border-color: var(--amethyst); color: #fff; }
+  .subchip small { opacity: .6; margin-left: 5px; font-size: 11.5px; }
+  @media (max-width: 640px) { .subchips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; } }
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--amethyst); color: var(--ivory); padding: 12px 20px; border-radius: 100px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -140,6 +147,8 @@
     </div>
   </div>
 
+  <div class="wrap"><div class="subchips" id="subChips" aria-label="Subcategories"></div></div>
+
   <div class="wrap shop-body">
     <div class="product-grid" id="productGrid">
       <div class="loading-state">Loading products…</div>
@@ -166,6 +175,7 @@
 const PAGE_SIZE = 30;
 let CATS = [];
 let loaded = {};
+let curSub = '';
 let shown = 0, total = 0, reqId = 0;
 
 function fmtPrice(n) { return '₹' + Math.round(Number(n)).toLocaleString('en-IN'); }
@@ -216,6 +226,7 @@ async function load(reset) {
   const sortMap = { relevance: 'new', 'price-asc': 'price-asc', 'price-desc': 'price-desc', 'name-asc': 'name-asc' };
   const qs = new URLSearchParams({
     cat: document.getElementById('catSelect').value,
+    sub: curSub,
     q: document.getElementById('searchInput').value.trim(),
     sort: sortMap[document.getElementById('sortSelect').value] || 'new',
     skip: shown, take: PAGE_SIZE,
@@ -246,7 +257,25 @@ async function load(reset) {
 document.getElementById('loadMoreBtn').addEventListener('click', () => load(false));
 let searchDebounce;
 document.getElementById('searchInput').addEventListener('input', () => { clearTimeout(searchDebounce); searchDebounce = setTimeout(() => load(true), 300); });
-document.getElementById('catSelect').addEventListener('change', () => load(true));
+async function loadSubs() {
+  const cat = document.getElementById('catSelect').value, box = document.getElementById('subChips');
+  if (!cat) { box.innerHTML = ''; return; }
+  let subs = [];
+  try { subs = await storeGet('/subcategories?cat=' + encodeURIComponent(cat)); } catch (e) {}
+  if (document.getElementById('catSelect').value !== cat) return;
+  if (!subs.length) { box.innerHTML = ''; return; }
+  const all = subs.reduce((s, x) => s + x.count, 0);
+  const chip = (name, label, n) => `<button class="subchip${curSub === name ? ' on' : ''}" data-sub="${esc(name)}">${esc(label)}<small>${n.toLocaleString('en-IN')}</small></button>`;
+  box.innerHTML = chip('', 'All', all) + subs.map(x => chip(x.name, x.name, x.count)).join('');
+}
+document.getElementById('subChips').addEventListener('click', (e) => {
+  const b = e.target.closest('.subchip'); if (!b) return;
+  curSub = b.dataset.sub;
+  document.querySelectorAll('.subchip').forEach(c => c.classList.toggle('on', c.dataset.sub === curSub));
+  const u = new URL(location.href); curSub ? u.searchParams.set('sub', curSub) : u.searchParams.delete('sub'); history.replaceState(null, '', u);
+  load(true);
+});
+document.getElementById('catSelect').addEventListener('change', () => { curSub = ''; loadSubs(); load(true); });
 document.getElementById('sortSelect').addEventListener('change', () => load(true));
 
 async function init() {
@@ -264,6 +293,8 @@ async function init() {
     }
   } catch (e) { /* category list is optional */ }
   if (params.get('q')) document.getElementById('searchInput').value = params.get('q');
+  curSub = params.get('sub') || '';
+  loadSubs();
   load(true);
 }
 init();

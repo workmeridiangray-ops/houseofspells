@@ -9,20 +9,22 @@
 // ============================================================
 import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { PluginCommonModule, TransactionalConnection, VendurePlugin } from '@vendure/core';
+import { OnApplicationBootstrap } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
 // MRP (struck-through price) lookup: source product URL -> [selling price, MRP], in rupees.
 // Only genuine-looking gaps (5-40%) are included. Shown only while the selling price still matches.
-const MRP: Record<string, [number, number]> = (() => {
-    for (const rel of ['../../../../data/mrp.json', '../../../data/mrp.json', '../../../../../data/mrp.json']) {
-        const p = path.join(__dirname, rel);
+function loadData(file: string): any {
+    for (const rel of ['../../../../data/', '../../../data/', '../../../../../data/']) {
+        const p = path.join(__dirname, rel, file);
         if (fs.existsSync(p)) {
             try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { /* ignore */ }
         }
     }
     return {};
-})();
+}
+const MRP: Record<string, [number, number]> = loadData('mrp.json');
 
 const BASE = `
   FROM product p
@@ -102,9 +104,32 @@ export class StoreController {
         return data;
     }
 
+    @Get('subcategories')
+    async subcategories(@Query('cat') cat: string, @Res({ passthrough: true }) res: any) {
+        res.set('Cache-Control', 'public, max-age=300');
+        if (!cat) return [];
+        return cached('subs:' + cat, async () => {
+            try {
+                const rows = await this.q(
+                    `SELECT sc.sub AS name, COUNT(DISTINCT p.id) AS n
+                     FROM hos_subcat sc
+                     JOIN product p ON p.id = sc.productId AND p.deletedAt IS NULL AND p.enabled = 1
+                     JOIN product_facet_values_facet_value pf ON pf.productId = p.id
+                     JOIN facet_value fvl ON fvl.id = pf.facetValueId
+                     WHERE fvl.code = ? GROUP BY sc.sub ORDER BY n DESC`,
+                    [cat],
+                );
+                return rows.map((r: any) => ({ name: r.name, count: Number(r.n) }));
+            } catch {
+                return [];
+            }
+        });
+    }
+
     @Get('catalog')
     async catalog(
         @Query('cat') cat: string,
+        @Query('sub') sub: string,
         @Query('q') term: string,
         @Query('sort') sort: string,
         @Query('skip') skipRaw: string,
@@ -117,6 +142,7 @@ export class StoreController {
         const where: string[] = [];
         const params: any[] = [];
         if (cat) { where.push('fvl.code = ?'); params.push(cat); }
+        if (sub) { where.push('p.id IN (SELECT productId FROM hos_subcat WHERE sub = ?)'); params.push(sub); }
         if (term && term.trim()) {
             where.push('pt.name LIKE ?');
             params.push('%' + term.trim().replace(/[%_]/g, '') + '%');
@@ -127,7 +153,7 @@ export class StoreController {
             : sort === 'price-desc' ? 'vp.price DESC, p.id ASC'
             : sort === 'name-asc' ? 'pt.name ASC, p.id ASC'
             : 'p.id DESC';
-        return cached(JSON.stringify([cat, term, sort, skip, take]), async () => {
+        return cached(JSON.stringify([cat, sub, term, sort, skip, take]), async () => {
             const [{ n }] = await this.q(`SELECT COUNT(DISTINCT p.id) AS n ${BASE}${extra}`, params);
             const rows = await this.q(
                 `SELECT ${COLS} ${BASE}${extra} GROUP BY p.id ORDER BY ${order} LIMIT ? OFFSET ?`,
@@ -194,4 +220,38 @@ export class StoreController {
     imports: [PluginCommonModule],
     controllers: [StoreController],
 })
-export class StorefrontPlugin {}
+export class StorefrontPlugin implements OnApplicationBootstrap {
+    constructor(private connection: TransactionalConnection) {}
+
+    // Builds the product -> subcategory lookup table once (from data/subcats.json, keyed by source URL).
+    onApplicationBootstrap() {
+        setTimeout(() => this.buildSubcats().catch((e) => console.error('[storefront] subcat build failed', e)), 20000);
+    }
+
+    private async buildSubcats() {
+        const raw = this.connection.rawConnection;
+        const isMysql = String(raw.options.type).includes('mysql') || String(raw.options.type).includes('maria');
+        if (isMysql) {
+            await raw.query('CREATE TABLE IF NOT EXISTS hos_subcat (productId INT NOT NULL PRIMARY KEY, sub VARCHAR(100) NOT NULL, KEY idx_sub (sub)) DEFAULT CHARSET=utf8mb4');
+        } else {
+            await raw.query('CREATE TABLE IF NOT EXISTS hos_subcat (productId INTEGER NOT NULL PRIMARY KEY, sub VARCHAR(100) NOT NULL)');
+            await raw.query('CREATE INDEX IF NOT EXISTS idx_sub ON hos_subcat (sub)');
+        }
+        const [{ n }] = await raw.query('SELECT COUNT(*) AS n FROM hos_subcat');
+        if (Number(n) > 0) return;
+        const map: Record<string, string> = loadData('subcats.json');
+        const products: { id: number; url: string }[] = await raw.query(
+            'SELECT id, customFieldsSourceurl AS url FROM product WHERE customFieldsSourceurl IS NOT NULL',
+        );
+        const rows = products.filter((p) => map[p.url]).map((p) => [p.id, map[p.url]] as [number, string]);
+        const verb = isMysql ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
+        for (let i = 0; i < rows.length; i += 500) {
+            const chunk = rows.slice(i, i + 500);
+            await raw.query(
+                `${verb} INTO hos_subcat (productId, sub) VALUES ${chunk.map(() => '(?, ?)').join(',')}`,
+                chunk.flat(),
+            );
+        }
+        console.log(`[storefront] subcategory table built: ${rows.length} products`);
+    }
+}
