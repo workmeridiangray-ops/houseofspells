@@ -9,6 +9,20 @@
 // ============================================================
 import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { PluginCommonModule, TransactionalConnection, VendurePlugin } from '@vendure/core';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// MRP (struck-through price) lookup: source product URL -> [selling price, MRP], in rupees.
+// Only genuine-looking gaps (5-40%) are included. Shown only while the selling price still matches.
+const MRP: Record<string, [number, number]> = (() => {
+    for (const rel of ['../../../data/mrp.json', '../../data/mrp.json', '../data/mrp.json']) {
+        const p = path.join(__dirname, rel);
+        if (fs.existsSync(p)) {
+            try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { /* ignore */ }
+        }
+    }
+    return {};
+})();
 
 const BASE = `
   FROM product p
@@ -22,10 +36,15 @@ const BASE = `
   WHERE p.deletedAt IS NULL AND p.enabled = 1`;
 
 const COLS = `p.id AS productId, pt.name, pt.slug, v.id AS variantId, vp.price AS price,
-  p.customFieldsImageurl AS image, fvl.code AS categorySlug, fvt.name AS category`;
+  p.customFieldsImageurl AS image, p.customFieldsSourceurl AS srcUrl, fvl.code AS categorySlug, fvt.name AS category`;
 
 function card(r: any) {
+    const price = Number(r.price) / 100;
+    const m = r.srcUrl ? MRP[r.srcUrl] : undefined;
+    const mrp = m && Math.round(price) === m[0] ? m[1] : null;
     return {
+        mrp,
+        off: mrp ? Math.round(((mrp - price) / mrp) * 100) : null,
         id: Number(r.variantId),
         productId: Number(r.productId),
         slug: r.slug,

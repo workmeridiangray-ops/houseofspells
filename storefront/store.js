@@ -17,3 +17,10 @@ async function shopGql(query, variables) {
   return j.data;
 }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// Struck-through MRP + "% off" badge (only when the API supplies a genuine MRP for the item).
+function mrpHtml(p) {
+  if (!p || !p.mrp || !(p.mrp > p.price)) return '';
+  return '<span class="hs-mrp" title="MRP">MRP ₹' + Math.round(p.mrp).toLocaleString('en-IN') + '</span>' +
+         '<span class="hs-off">' + (p.off || Math.round((1 - p.price / p.mrp) * 100)) + '% off</span>';
+}

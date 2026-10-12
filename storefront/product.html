@@ -585,6 +585,7 @@ async function init() {
   const bc = document.getElementById('bcCat'); bc.textContent = P.category; bc.href = 'shop.html?cat=' + encodeURIComponent(P.categorySlug);
   const tag = document.getElementById('catTag'); tag.textContent = P.category; tag.style.display = '';
   document.getElementById('priceNow').textContent = fmtINR(P.price);
+  if (P.mrp) { const pb = document.querySelector('.price-block'); pb.insertAdjacentHTML('beforeend', '<span class="price-was">MRP ' + fmtINR(P.mrp) + '</span><span class="hs-off">' + P.off + '% off</span><div style="flex-basis:100%;font-size:12px;color:var(--ivory-faint)">Inclusive of all taxes</div>'); }
   const main = document.getElementById('mainImage'); main.src = P.image; main.alt = P.alt || P.name;
   document.getElementById('thumbCol').innerHTML = `<div class="thumb-item active"><img src="${esc(P.image)}" alt="${esc(P.name)}"></div>`;
   document.getElementById('descText').textContent = P.description;
@@ -595,7 +596,7 @@ async function init() {
     <a href="product.html?slug=${encodeURIComponent(p.slug)}" class="product-card">
       <div class="thumb"><img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy"></div>
       <div class="name">${esc(p.name)}</div>
-      <div class="price">${fmtINR(p.price)}</div>
+      <div class="price">${fmtINR(p.price)}${mrpHtml(p)}</div>
     </a>`).join('');
   const ld = document.createElement('script'); ld.type = 'application/ld+json';
   ld.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: P.name, image: [P.image], description: P.description, sku: P.sku, offers: { '@type': 'Offer', priceCurrency: 'INR', price: P.price, availability: 'https://schema.org/InStock' } });

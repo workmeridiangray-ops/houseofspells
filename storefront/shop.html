@@ -180,7 +180,7 @@ function productCard(p) {
       <div class="info">
         <span class="cat-label">${esc(p.category)}</span>
         <a href="product.html?slug=${encodeURIComponent(p.slug)}" class="name">${esc(p.name)}</a>
-        <div class="price-row"><span class="price">${fmtPrice(p.price)}</span></div>
+        <div class="price-row"><span class="price">${fmtPrice(p.price)}</span>${mrpHtml(p)}</div>
         <button class="add-btn" data-pid="${p.id}" onclick="addToCart(${p.id}, this)">Add to cart</button>
       </div>
     </div>`;
