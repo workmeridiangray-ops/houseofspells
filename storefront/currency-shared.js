@@ -1,5 +1,5 @@
 // ============================================================
-// Lunar & Lore — Currency Detection Module
+// House of Spells — Currency Detection Module
 // Detects the visitor's country via IP geolocation and shows
 // prices in their local currency. Falls back to INR if detection
 // fails or the visitor is in India.

@@ -1,5 +1,5 @@
 // ============================================================
-// Lunar & Lore — Shared Cart Module
+// House of Spells — Shared Cart Module
 // Persists cart state via localStorage so it survives navigation
 // between index.html, product.html, cart.html, and checkout.html.
 // ============================================================

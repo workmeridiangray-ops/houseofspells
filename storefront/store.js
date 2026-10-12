@@ -1,4 +1,4 @@
-// Witchcraft storefront -> backend client (same origin as the store API)
+// House of Spells storefront -> backend client (same origin as the store API)
 async function storeGet(path) {
   const r = await fetch('/store' + path);
   if (!r.ok) throw new Error('store ' + r.status);
