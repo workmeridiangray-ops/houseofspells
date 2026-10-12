@@ -37,7 +37,20 @@ export const config: VendureConfig = {
             secret: process.env.COOKIE_SECRET || 'witchcraft-dev-secret-change-me',
         },
     },
-    dbConnectionOptions: IS_DEV
+    dbConnectionOptions: process.env.DB_HOST
+        ? {
+              // MySQL / MariaDB (Hostinger Cloud and most shared hosts). Set DB_HOST,
+              // DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. First run: DB_SYNCHRONIZE=true.
+              type: 'mysql',
+              host: process.env.DB_HOST,
+              port: Number(process.env.DB_PORT) || 3306,
+              username: process.env.DB_USER,
+              password: process.env.DB_PASSWORD,
+              database: process.env.DB_NAME,
+              charset: 'utf8mb4',
+              synchronize: process.env.DB_SYNCHRONIZE === 'true',
+          }
+        : IS_DEV
         ? {
               type: 'better-sqlite3',
               database: path.join(__dirname, '../vendure.sqlite'),
